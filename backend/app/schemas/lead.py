@@ -35,3 +35,10 @@ class LeadListResponse(BaseModel):
     leads: List[LeadResponse]
     skip: int
     limit: int
+
+class LeadMetricsResponse(BaseModel):
+    """Schema representing sales funnel metrics for Leads."""
+    new: int
+    contacted: int
+    qualified: int
+    lost: int

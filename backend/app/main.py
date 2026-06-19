@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.routers.leads import router as leads_router
+from app.routers.lead_activities import router as activities_router
+from app.routers.metrics import router as metrics_router
 from app.exceptions import LeadNotFound, DuplicateEmail, InvalidStatus, InvalidActivityType
 
 app = FastAPI(
@@ -41,6 +43,8 @@ def invalid_activity_type_handler(request: Request, exc: InvalidActivityType):
 
 # Register Routers
 app.include_router(leads_router)
+app.include_router(activities_router)
+app.include_router(metrics_router)
 
 @app.get("/", tags=["Health"])
 def read_root():
