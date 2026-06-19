@@ -106,3 +106,13 @@ La arquitectura inicial de este showcase se concibe bajo el concepto de **arquit
 El proyecto se encuentra formalmente en **Fase de Diseño Conceptual y Definición Arquitectónica**. 
 
 Este documento de visión rectora representa la fase inicial ("Documentation-First") y sirve como el contrato de requerimientos y guías de calidad que regirán la posterior creación de la estructura del repositorio, el modelo de datos, la API y los tests asociados.
+
+## Directorios Ignorados y Acceso a Documentación
+
+Para mantener el historial de Git limpio de metadatos y documentación interna, existen directorios que están ignorados en el control de versiones (`.gitignore`):
+
+*   **/docs/**: Contiene la documentación del proyecto (como el PRD, requerimientos, arquitectura, roadmap, etc.), exceptuando `README.md` y `GEMINI.md` que permanecen en la raíz.
+*   **.agents/**: Contiene las configuraciones de subagentes y catálogo de skills del proyecto.
+
+> [!IMPORTANT]
+> **Acceso a datos locales:** Aunque estas carpetas no se suben al repositorio de Git, **existen localmente en el entorno de desarrollo**. Si necesitas consultar o leer su contenido para obtener contexto sobre la arquitectura, decisiones de diseño o el roadmap, debes hacerlo leyendo directamente los archivos del disco (por ejemplo, ejecutando comandos de visualización como `cat` o usando las herramientas de lectura del sistema).
