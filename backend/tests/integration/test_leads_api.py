@@ -106,7 +106,8 @@ def test_update_lead_invalid_status(client):
 
     # Assert
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-    assert "not allowed" in response.json()["detail"].lower()
+    detail = response.json()["detail"].lower()
+    assert "input should be" in detail or "not allowed" in detail
 
 def test_list_leads_with_search_and_filter(client):
     # Arrange

@@ -3,6 +3,7 @@ from sqlalchemy import String, Integer, DateTime, ForeignKey, CheckConstraint, f
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+from app.models.enums import ActivityType
 
 class LeadActivity(Base):
     """
@@ -16,9 +17,9 @@ class LeadActivity(Base):
         ForeignKey("leads.id", ondelete="CASCADE"),
         nullable=False
     )
-    type: Mapped[str] = mapped_column(String(20), nullable=False)
+    type: Mapped[ActivityType] = mapped_column(String(20), nullable=False)
     notes: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), nullable=False)
     
     # Relación N:1 con Lead
     lead: Mapped["Lead"] = relationship("Lead", back_populates="activities")

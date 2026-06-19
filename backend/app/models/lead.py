@@ -4,6 +4,7 @@ from sqlalchemy import String, Integer, DateTime, CheckConstraint, UniqueConstra
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+from app.models.enums import LeadStatus
 
 class Lead(Base):
     """
@@ -16,9 +17,9 @@ class Lead(Base):
     company: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default="NEW")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    status: Mapped[LeadStatus] = mapped_column(String(20), nullable=False, default=LeadStatus.NEW)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), onupdate=func.now(), nullable=False)
     
     # Relación 1:N con LeadActivity.
     # El borrado en cascada a nivel de SQLAlchemy se complementa con ON DELETE CASCADE en BD.
