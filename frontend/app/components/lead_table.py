@@ -109,8 +109,11 @@ async def lead_table(on_select_lead: Callable[[int], None]) -> None:
                     s["table_skip"] += s["table_limit"]
                     lead_table.refresh()
 
-            ui.button(icon='chevron_left', on_click=prev_page).props('flat dense').enabled(state["table_skip"] > 0)
-            ui.button(icon='chevron_right', on_click=next_page).props('flat dense').enabled(len(leads) == state["table_limit"])
+            prev_btn = ui.button(icon='chevron_left', on_click=prev_page).props('flat dense')
+            prev_btn.enabled = state["table_skip"] > 0
+            
+            next_btn = ui.button(icon='chevron_right', on_click=next_page).props('flat dense')
+            next_btn.enabled = len(leads) == state["table_limit"]
 
     # NiceGUI / Quasar Table
     if not rows:
