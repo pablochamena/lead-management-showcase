@@ -20,5 +20,5 @@ class SQLAlchemyLeadActivityRepository(AbstractLeadActivityRepository):
     def list_by_lead_id(self, lead_id: int) -> List[LeadActivity]:
         stmt = select(LeadActivity).filter(
             LeadActivity.lead_id == lead_id
-        ).order_by(LeadActivity.created_at.desc())
+        ).order_by(LeadActivity.created_at.desc(), LeadActivity.id.desc())
         return list(self.session.execute(stmt).scalars().all())
