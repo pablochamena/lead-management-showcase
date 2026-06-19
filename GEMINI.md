@@ -52,3 +52,28 @@ Si eres un nuevo agente trabajando en este repositorio:
 2.  Lee este archivo (`GEMINI.md`) para entender bajo qué reglas de entorno opera el proyecto.
 3.  Cuando el usuario te asigne una tarea (ej: crear un endpoint, testear un servicio, revisar código), lee el subagente correspondiente en `.agents/` y adopta su comportamiento y formato de salida.
 4.  Antes de codificar, consulta la skill adecuada en `.agents/skills/` para replicar exactamente los patrones estructurales aprobados.
+
+---
+
+## 5. Directorios Ignorados y Acceso a Documentación
+
+Para mantener el historial de Git limpio de metadatos y documentación interna, existen directorios que están ignorados en el control de versiones (`.gitignore`):
+
+*   **/docs/**: Contiene la documentación del proyecto (como el PRD, requerimientos, arquitectura, roadmap, etc.), exceptuando `README.md` y `GEMINI.md` que permanecen en la raíz.
+*   **.agents/**: Contiene las configuraciones de subagentes y catálogo de skills del proyecto.
+
+> [!IMPORTANT]
+> **Acceso a datos locales:** Aunque estas carpetas no se suben al repositorio de Git, **existen localmente en el entorno de desarrollo**. Si necesitas consultar o leer su contenido para obtener contexto sobre la arquitectura, decisiones de diseño o el roadmap, debes hacerlo leyendo directamente los archivos del disco (por ejemplo, ejecutando comandos de visualización como `cat` o usando las herramientas de lectura del sistema).
+
+## 6. Estrategia de Git y Control de Versiones Obligatorio
+
+> [!IMPORTANT]
+> **REGLA DE RAMIFICACIÓN:** Está terminantemente prohibido realizar commits directos sobre la rama `main`. El desarrollo debe avanzar estrictamente de forma secuencial mediante ramas asociadas a los Milestones del `ROADMAP.md`.
+
+* **Nomenclatura de Ramas**: `feature/M<Número>-<nombre-corto>` (Ejemplo: `feature/M2-base-structure`).
+* **Flujo de Trabajo por Milestone**:
+    1. Al iniciar un Milestone, el agente debe verificar que está parado en la rama del Milestone anterior (o `main` si es el M1) y crear la nueva rama.
+    2. Al finalizar el desarrollo y cumplir el 100% del Definition of Done (DoD) del Milestone, el agente debe realizar el commit con un mensaje descriptivo y profesional (siguiendoConventional Commits si es posible, ej: `feat(infra): complete docker setup and verify connections`).
+    3. El agente debe realizar el `git push origin feature/M...` hacia el repositorio remoto.
+    4. **Simulación de PR / Fusión**: Una vez que el usuario apruebe el resultado en el chat, el agente cambiará a `main`, fusionará la rama del hito (`git merge --no-ff`) y subirá `main` al remoto. Jamás se borran las ramas de los Milestones anteriores para mantener el historial como showcase.
+
