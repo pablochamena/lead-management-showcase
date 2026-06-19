@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, status
 from app.schemas.lead_activity import LeadActivityCreate, LeadActivityResponse
 from app.services.lead_activity_service import LeadActivityService
 from app.dependencies import get_lead_activity_service
+from app.models import LeadActivity
 
 router = APIRouter(prefix="/leads/{lead_id}/activities", tags=["Activities"])
 
@@ -18,7 +19,7 @@ def register_activity(
     lead_id: int,
     payload: LeadActivityCreate,
     service: LeadActivityService = Depends(get_lead_activity_service)
-) -> LeadActivityResponse:
+) -> LeadActivity:
     return service.register_activity(
         lead_id=lead_id,
         type=payload.type.value,
@@ -35,5 +36,5 @@ def register_activity(
 def list_activities(
     lead_id: int,
     service: LeadActivityService = Depends(get_lead_activity_service)
-) -> List[LeadActivityResponse]:
+) -> List[LeadActivity]:
     return service.list_activities(lead_id)

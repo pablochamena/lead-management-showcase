@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, status
 from app.schemas.lead import LeadCreate, LeadUpdate, LeadResponse, LeadListResponse
 from app.services.lead_service import LeadService
 from app.dependencies import get_lead_service
+from app.models import Lead, LeadStatus
 
 router = APIRouter(prefix="/leads", tags=["Leads"])
 
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/leads", tags=["Leads"])
 def create_lead(
     payload: LeadCreate,
     service: LeadService = Depends(get_lead_service)
-) -> LeadResponse:
+) -> Lead:
     return service.create_lead(
         name=payload.name,
         email=payload.email,
@@ -33,7 +34,7 @@ def create_lead(
     description="Retrieve a paginated list of leads, optionally filtering by status and searching by text query."
 )
 def list_leads(
-    status: Optional[str] = None,
+    status: Optional[LeadStatus] = None,
     query: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
@@ -52,7 +53,7 @@ def list_leads(
 def get_lead(
     lead_id: int,
     service: LeadService = Depends(get_lead_service)
-) -> LeadResponse:
+) -> Lead:
     return service.get_lead(lead_id)
 
 @router.put(
@@ -66,7 +67,7 @@ def update_lead(
     lead_id: int,
     payload: LeadUpdate,
     service: LeadService = Depends(get_lead_service)
-) -> LeadResponse:
+) -> Lead:
     return service.update_lead(
         lead_id=lead_id,
         **payload.model_dump(exclude_unset=True)
