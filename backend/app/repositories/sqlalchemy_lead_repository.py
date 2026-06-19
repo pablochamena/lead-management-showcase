@@ -54,7 +54,7 @@ class SQLAlchemyLeadRepository(AbstractLeadRepository):
             )
             
         # Order by created_at DESC and apply pagination
-        stmt = stmt.order_by(Lead.created_at.desc()).offset(skip).limit(limit)
+        stmt = stmt.order_by(Lead.created_at.desc(), Lead.id.desc()).offset(skip).limit(limit)
         return list(self.session.execute(stmt).scalars().all())
 
     def update(self, lead: Lead) -> Lead:
