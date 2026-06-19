@@ -59,8 +59,11 @@ class SQLAlchemyLeadRepository(AbstractLeadRepository):
 
     def update(self, lead: Lead) -> Lead:
         try:
-            # Object is already in session, flush modifications
+            # Flush pending modifications to the DB
             self.session.flush()
+            # Refresh the ORM instance to reload server-generated values (e.g. updated_at)
+            # from the database, preventing stale data in the API response (B-03).
+            self.session.refresh(lead)
             return lead
         except IntegrityError as e:
             if "uq_lead_email" in str(e) or "email" in str(e).lower():

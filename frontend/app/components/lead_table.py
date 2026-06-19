@@ -25,7 +25,9 @@ async def lead_table(on_select_lead: Callable[[int], None]) -> None:
         url += f"&query={table_state['query']}"
         
     data = await api_request("GET", url)
-    leads = data["leads"] if data else []
+    # Strict type guard: protects against None responses AND malformed non-dict payloads
+    # (e.g. upstream proxy errors returning HTML or a plain string instead of JSON) (B-05).
+    leads = data.get("leads", []) if isinstance(data, dict) else []
     
     # Define table columns for Quasar integration
     columns = [

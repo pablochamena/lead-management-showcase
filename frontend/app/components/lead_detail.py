@@ -23,8 +23,10 @@ async def lead_detail(lead_id: Optional[int], on_update: Callable[[], None]) -> 
     # Fetch detailed info and activity timeline concurrently from the backend API
     lead = await api_request("GET", f"/leads/{lead_id}")
     activities = await api_request("GET", f"/leads/{lead_id}/activities")
-    
-    if not lead:
+
+    # Robust guard: verify lead is a valid dict with required keys before any subscript access.
+    # This prevents 'NoneType' object errors under race conditions or malformed API responses (B-04).
+    if not lead or not isinstance(lead, dict) or "name" not in lead:
         with ui.card().classes('w-full p-8 text-center items-center justify-center bg-white border rounded-xl shadow-sm'):
             ui.icon('error_outline', size='lg').classes('text-red-300')
             ui.label('No se pudo obtener la información de este lead.').classes('text-red-500 mt-2 text-sm font-medium')
@@ -47,14 +49,16 @@ async def lead_detail(lead_id: Optional[int], on_update: Callable[[], None]) -> 
                     value=lead["status"]
                 ).props('outlined dense').classes('w-44')
                 
-                async def update_status():
+                async def update_status(captured_lead_id: int = lead_id):
+                    """Update lead status. Captures lead_id as a default argument to prevent
+                    stale closure bugs when the component is refreshed (B-04)."""
                     if status_select.value == lead["status"]:
                         return
-                    res = await api_request("PUT", f"/leads/{lead_id}", json={"status": status_select.value})
+                    res = await api_request("PUT", f"/leads/{captured_lead_id}", json={"status": status_select.value})
                     if res:
                         ui.notify(f"Estado del lead actualizado a {status_select.value}", type="positive", position="top-right")
                         on_update()  # Refresh metrics cards and main lead list table
-                        lead_detail.refresh(lead_id)  # Refresh lead profile values locally
+                        lead_detail.refresh(captured_lead_id)  # Refresh lead profile values locally
                         
                 status_select.on('update:model-value', update_status)
 
@@ -98,7 +102,9 @@ async def lead_detail(lead_id: Optional[int], on_update: Callable[[], None]) -> 
                     placeholder='Escriba los detalles de la interacción...'
                 ).props('outlined dense required rows=2').classes('flex-1')
                 
-                async def add_activity():
+                async def add_activity(captured_lead_id: int = lead_id):
+                    """Register a new activity. Captures lead_id as a default argument to prevent
+                    stale closure bugs when the component is refreshed (B-04)."""
                     if not notes_input.value or not notes_input.value.strip():
                         ui.notify("Por favor ingrese las notas de la actividad.", type="warning", position="top-right")
                         return
@@ -109,11 +115,11 @@ async def lead_detail(lead_id: Optional[int], on_update: Callable[[], None]) -> 
                     }
                     
                     # POST activity to API
-                    res = await api_request("POST", f"/leads/{lead_id}/activities", json=payload)
+                    res = await api_request("POST", f"/leads/{captured_lead_id}/activities", json=payload)
                     if res:
                         ui.notify("Interacción registrada correctamente.", type="positive", position="top-right")
                         notes_input.value = ""  # Clear input field
-                        lead_detail.refresh(lead_id)  # Refresh activity timeline locally
+                        lead_detail.refresh(captured_lead_id)  # Refresh activity timeline locally
                         
                 ui.button('Registrar', icon='send', on_click=add_activity).props('dense').classes('bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold self-end')
 

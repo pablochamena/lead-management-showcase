@@ -1,4 +1,5 @@
 import sys
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -24,12 +25,12 @@ async def lifespan(app: FastAPI):
         try:
             lead_count = db.query(Lead).count()
             if lead_count == 0:
-                print("Database is empty. Triggering automated startup data seeding...")
+                logging.info("Database is empty. Triggering automated startup data seeding...")
                 seed_db(db)
             else:
-                print(f"Database contains {lead_count} existing leads. Skipping automated seeding.")
+                logging.info(f"Database contains {lead_count} existing leads. Skipping automated seeding.")
         except Exception as e:
-            print(f"Warning: Failed to verify or seed database on startup: {str(e)}")
+            logging.warning(f"Failed to verify or seed database on startup: {str(e)}")
         finally:
             db.close()
     yield
@@ -68,6 +69,19 @@ def invalid_activity_type_handler(request: Request, exc: InvalidActivityType):
     return JSONResponse(
         status_code=422,
         content={"detail": str(exc)}
+    )
+
+@app.exception_handler(Exception)
+def generic_exception_handler(request: Request, exc: Exception):
+    """
+    Global fallback handler for any unhandled exception (B-06).
+    Returns a consistent JSON body with HTTP 500 instead of an empty or HTML response,
+    preventing information leakage while maintaining API contract uniformity.
+    """
+    logging.error(f"Unhandled exception on {request.method} {request.url}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"}
     )
 
 # Register Routers
