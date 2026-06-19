@@ -1,12 +1,18 @@
-from nicegui import ui
+from nicegui import ui, app as nicegui_app
 from typing import Callable, Optional
 from app.client import api_request
 from app.models.enums import LeadStatus, ActivityType
 
-# Shared state to track the currently selected Lead
-detail_state = {
-    "selected_id": None
-}
+def get_detail_state() -> dict:
+    """
+    Returns the current user's detail state from NiceGUI's per-session storage (A-01).
+    Replaces the previous global mutable dict shared across all user connections.
+    'selected_id' is stored per user to ensure multi-user isolation.
+    """
+    storage = nicegui_app.storage.user
+    if "selected_id" not in storage:
+        storage["selected_id"] = None
+    return storage
 
 @ui.refreshable
 async def lead_detail(lead_id: Optional[int], on_update: Callable[[], None]) -> None:

@@ -9,10 +9,15 @@ from app.repositories.sqlalchemy_lead_activity_repository import SQLAlchemyLeadA
 from app.services.lead_service import LeadService
 from app.services.lead_activity_service import LeadActivityService
 
-# Initialize the database engine
+# Initialize the database engine with explicit connection pool limits for production (A-04).
+# pool_size: max persistent connections kept open in the pool.
+# max_overflow: additional connections allowed beyond pool_size under peak load.
+# pool_pre_ping: validates connections before use, discarding stale/dead ones.
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=10
 )
 
 # Session factory

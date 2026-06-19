@@ -3,6 +3,8 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from sqlalchemy import select, func
 
 from app.routers.leads import router as leads_router
 from app.routers.lead_activities import router as activities_router
@@ -23,7 +25,8 @@ async def lifespan(app: FastAPI):
     if not is_testing:
         db = SessionLocal()
         try:
-            lead_count = db.query(Lead).count()
+            # SA 2.0 style query — replaces legacy db.query(Lead).count() (A-02)
+            lead_count = db.execute(select(func.count()).select_from(Lead)).scalar()
             if lead_count == 0:
                 logging.info("Database is empty. Triggering automated startup data seeding...")
                 seed_db(db)
@@ -69,6 +72,27 @@ def invalid_activity_type_handler(request: Request, exc: InvalidActivityType):
     return JSONResponse(
         status_code=422,
         content={"detail": str(exc)}
+    )
+
+@app.exception_handler(RequestValidationError)
+def request_validation_error_handler(request: Request, exc: RequestValidationError):
+    """
+    Custom handler for Pydantic/FastAPI RequestValidationError (A-03).
+    Transforms the default nested list format [{"loc": [...], "msg": "..."}]
+    into the uniform string format {"detail": "..."} used by all domain handlers,
+    providing a consistent API error contract for frontend consumers.
+    """
+    errors = exc.errors()
+    # Flatten all validation error messages into a single readable string
+    messages = []
+    for error in errors:
+        location = " -> ".join(str(loc) for loc in error.get("loc", []))
+        msg = error.get("msg", "Validation error")
+        messages.append(f"{location}: {msg}" if location else msg)
+    detail = "; ".join(messages)
+    return JSONResponse(
+        status_code=422,
+        content={"detail": detail}
     )
 
 @app.exception_handler(Exception)

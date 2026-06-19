@@ -8,7 +8,7 @@ from nicegui import ui
 from app.components.kpi_cards import kpi_cards
 from app.components.lead_table import lead_table
 from app.components.lead_form import lead_form
-from app.components.lead_detail import lead_detail, detail_state
+from app.components.lead_detail import lead_detail, get_detail_state
 
 @ui.page('/')
 async def index_page() -> None:
@@ -19,16 +19,19 @@ async def index_page() -> None:
     # Apply modern slate background color to index body
     ui.query('body').style('background-color: #f8fafc;')
     
-    # Callback to refresh all reactive components in the dashboard
+    # Callback to refresh all reactive components in the dashboard.
+    # Reads selected_id from per-user session storage (A-01).
     def refresh_all():
+        state = get_detail_state()
         kpi_cards.refresh()
         lead_table.refresh()
-        if detail_state["selected_id"]:
-            lead_detail.refresh(detail_state["selected_id"])
-            
-    # Callback when a lead row detail button is clicked in the table
+        if state["selected_id"]:
+            lead_detail.refresh(state["selected_id"])
+
+    # Callback when a lead row detail button is clicked in the table.
+    # Writes selected_id into per-user session storage (A-01).
     def select_lead(lead_id: int):
-        detail_state["selected_id"] = lead_id
+        get_detail_state()["selected_id"] = lead_id
         lead_detail.refresh(lead_id)
         
     # Instantiate the lead registration dialog form
@@ -72,13 +75,16 @@ async def index_page() -> None:
             # Right Column: Lead detail & Activity timeline
             with ui.column().classes('lg:col-span-5 w-full gap-2'):
                 ui.label('Ficha de Seguimiento').classes('text-xs font-bold text-slate-400 uppercase tracking-wider')
-                await lead_detail(detail_state["selected_id"], on_update=refresh_all)
+                # Read selected_id from per-user session storage (A-01)
+                await lead_detail(get_detail_state()["selected_id"], on_update=refresh_all)
 
-# Run NiceGUI bound to 0.0.0.0 and port 8080 (as expected by Docker Compose)
+# Run NiceGUI bound to 0.0.0.0 and port 8080 (as expected by Docker Compose).
+# storage_secret is required to enable app.storage.user per-session isolation (A-01).
 ui.run(
     host='0.0.0.0',
     port=8080,
     title='CRM Dashboard',
     show=False,
-    reload=True
+    reload=True,
+    storage_secret='un_secreto_seguro_para_el_showcase'
 )
